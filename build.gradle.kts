@@ -28,10 +28,10 @@ repositories {
 
 dependencies {
     // Ktor Framework
-    implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-core:$ktor_version")
+    implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
+    implementation("io.ktor:ktor-serialization:$ktor_version")
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
 
     // Logging
@@ -46,5 +46,6 @@ dependencies {
     implementation("mysql:mysql-connector-java:$mysql_version")
     implementation("com.zaxxer:HikariCP:$hikari_version")
 
+    testImplementation("io.ktor:ktor-server-tests:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
