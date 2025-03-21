@@ -21,5 +21,4 @@
 </ul>
 <h2 color="$color_text_primary" font-size="24px" font-weight="600" class="css-13o5nww"><h2 color="$color_text_primary" font-size="24px" font-weight="600" class="css-13o5nww">License</h2>
 <p color="$color_text_primary" class="css-np9kzu">This project is licensed under the MIT License. Please refer to the LICENSE file for more details.</p>
-<hr>
 <p color="$color_text_primary" class="css-np9kzu">Feel free to modify any sections as needed!</p></div></div></div>
