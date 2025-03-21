@@ -28,11 +28,8 @@ repositories {
 
 dependencies {
     // Ktor Framework
-    implementation("io.ktor:ktor-server-core:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-serialization:$ktor_version")
-    implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
+    implementation("io.ktor:ktor-server-core-jvm")
+    implementation("io.ktor:ktor-server-netty-jvm")
 
     // Logging
     implementation("ch.qos.logback:logback-classic:$logback_version")
@@ -41,6 +38,18 @@ dependencies {
     implementation("org.ktorm:ktorm-core:$ktorm_version")
     implementation("org.ktorm:ktorm-jackson:$ktorm_version")
     implementation("org.ktorm:ktorm-support-mysql:$ktorm_version")
+
+    // content negotiation(with Jackson)을 위한 의존성
+    implementation("io.ktor:ktor-server-content-negotiation-jvm")
+    implementation("io.ktor:ktor-serialization-jackson-jvm")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // CallLogging & DoubleReceive 위한 의존성
+    implementation("io.ktor:ktor-server-call-logging-jvm")
+    implementation("io.ktor:ktor-server-double-receive-jvm")
+    implementation("ch.qos.logback:logback-classic:1.5.15")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     // MySQL Connector and HikariCP
     implementation("mysql:mysql-connector-java:$mysql_version")
