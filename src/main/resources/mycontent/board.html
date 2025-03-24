@@ -43,7 +43,7 @@
                     <td>${post.id}</td>
                     <td>${post.title}</td>
                     <td>${post.content}</td>
-                    <td>${new Date(post.createdAt).toLocaleString()}</td>
+                    <td>${(post.createdAt).toLocaleString()}</td>
                 </tr>
             `).join('');
             })
