@@ -7,22 +7,19 @@
 <body>
 <h1>게시판</h1>
 <div class="col-md-12">
-    <div class="row">
-        <form action="/posts" method="post">
-            <div>
-                <label for="title">제목:</label>
-                <input type="text" id="title" name="title" required />
-            </div>
-            <div>
-                <label for="content">내용:</label>
-                <textarea id="content" name="content" required></textarea>
-            </div>
-            <button type="submit">등록</button>
-        </form>
+    <form action="/posts" method="post">
+        <div>
+            <label for="title">제목:</label>
+            <input type="text" id="title" name="title" required />
+        </div>
+        <div>
+            <label for="content">내용:</label>
+            <textarea id="content" name="content" required></textarea>
+        </div>
+        <button type="submit">등록</button>
+    </form>
 
-    </div>
     <br>
-    <!-- 기존 테이블 구조 수정 -->
     <table class="table table-horizontal table-bordered">
         <thead class="thead-strong">
         <tr>
@@ -32,30 +29,26 @@
             <th>작성일</th>
         </tr>
         </thead>
-        <tbody id="tbody">
-        <!-- 데이터가 여기에 채워집니다 -->
-        </tbody>
+        <tbody id="tbody"></tbody>
     </table>
 </div>
-</body>
-<!-- 하단에 스크립트 추가 -->
 <script>
-    // 페이지 로드 시 데이터 가져오기
     window.onload = function() {
         fetch('/posts')
             .then(response => response.json())
             .then(posts => {
                 const tbody = document.getElementById('tbody');
                 tbody.innerHTML = posts.map(post => `
-                    <tr>
-                        <td>${post.id}</td>
-                        <td>${post.title}</td>
-                        <td>${post.content}</td>
-                        <td>${new Date(post.createdAt).toLocaleString()}</td>
-                    </tr>
-                `).join('');
+                <tr>
+                    <td>${post.id}</td>
+                    <td>${post.title}</td>
+                    <td>${post.content}</td>
+                    <td>${new Date(post.createdAt).toLocaleString()}</td>
+                </tr>
+            `).join('');
             })
             .catch(error => console.error('Error:', error));
     };
 </script>
+</body>
 </html>

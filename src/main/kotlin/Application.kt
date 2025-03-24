@@ -13,22 +13,20 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    val config = HikariDataSource(
+    val dataSource = HikariDataSource(
         HikariConfig().apply {
             jdbcUrl = "jdbc:mysql://localhost:3306/template"
-            driverClassName = "com.mysql.jdbc.Driver"
+            driverClassName = "com.mysql.cj.jdbc.Driver" // 최신 드라이버 사용
             username = "user"
             password = "user123"
         }
     )
 
-    val dataSource = HikariDataSource(config)
     val database = Database.connect(dataSource)
 
     configureRouting(database)
     configureSerialization()
 }
-
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {

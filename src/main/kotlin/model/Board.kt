@@ -16,17 +16,17 @@ interface Board : Entity<Board> {
 }
 
 object Boards : Table<Board>("BOARD") {
-    val id = long("ID").primaryKey().bindTo { it.id }
-    val title = text("TITLE").bindTo { it.title }
-    val content = text("CONTENT").bindTo { it.content }
-    val createdAt = datetime("CREATED_AT").bindTo { it.createdAt }
-    val updatedAt = datetime("UPDATED_AT").bindTo { it.updatedAt }
+    val id = long("ID").primaryKey().bindTo(Board::id)
+    val title = text("TITLE").bindTo(Board::title)
+    val content = text("CONTENT").bindTo(Board::content)
+    val createdAt = datetime("CREATED_AT").bindTo(Board::createdAt)
+    val updatedAt = datetime("UPDATED_AT").bindTo(Board::updatedAt)
 }
 
 data class BoardDto(
     val id: Long,
     val title: String,
     val content: String,
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime?
+    val createdAt: String,
+    val updatedAt: String?
 )

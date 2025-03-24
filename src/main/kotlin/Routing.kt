@@ -1,7 +1,7 @@
 package board.ktor
 
-import board.ktor.model.Board
 import board.ktor.model.BoardDto
+import board.ktor.model.Boards
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -14,17 +14,11 @@ import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
 import org.ktorm.dsl.map
 import org.ktorm.dsl.select
-import org.ktorm.schema.Table
-import org.ktorm.schema.datetime
-import org.ktorm.schema.long
-import org.ktorm.schema.text
 import java.time.LocalDateTime
-import board.ktor.model.Boards
 
 
 fun Application.configureRouting(database: Database) {
     routing {
-        // 글 등록 처리
         post("/posts") {
             val formParameters = call.receiveParameters()
             val title = formParameters["title"] ?: return@post call.respondBadRequest()
@@ -41,18 +35,16 @@ fun Application.configureRouting(database: Database) {
 
         staticResources("/content", "mycontent")
 
-        // 게시글 목록 조회 API
         get("/posts") {
-            val posts = database
-                .from(Boards)
+            val posts = database.from(Boards)
                 .select()
                 .map { row ->
                     BoardDto(
                         id = row[Boards.id]!!,
                         title = row[Boards.title]!!,
                         content = row[Boards.content]!!,
-                        createdAt = row[Boards.createdAt]!!,
-                        updatedAt = row[Boards.updatedAt]
+                        createdAt = row[Boards.createdAt]!!.toString(),
+                        updatedAt = row[Boards.updatedAt]?.toString()
                     )
                 }
             call.respond(posts)
@@ -60,6 +52,6 @@ fun Application.configureRouting(database: Database) {
     }
 }
 
-suspend fun ApplicationCall.respondBadRequest() = respond(
-    TextContent("Invalid request", ContentType.Text.Plain, HttpStatusCode.BadRequest)
-)
+suspend fun ApplicationCall.respondBadRequest() {
+    respond(TextContent("Invalid request", ContentType.Text.Plain, HttpStatusCode.BadRequest))
+}
