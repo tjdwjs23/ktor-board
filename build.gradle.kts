@@ -55,6 +55,6 @@ dependencies {
     implementation("mysql:mysql-connector-java:$mysql_version")
     implementation("com.zaxxer:HikariCP:$hikari_version")
 
-    testImplementation("io.ktor:ktor-server-tests:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
