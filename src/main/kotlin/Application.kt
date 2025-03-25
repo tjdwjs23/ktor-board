@@ -12,13 +12,16 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
+
 fun Application.module() {
+    val config = environment.config
+
     val dataSource = HikariDataSource(
         HikariConfig().apply {
-            jdbcUrl = "jdbc:mysql://localhost:3306/template"
-            driverClassName = "com.mysql.cj.jdbc.Driver" // 최신 드라이버 사용
-            username = "user"
-            password = "user123"
+            jdbcUrl = config.property("ktor.database.jdbcUrl").getString()
+            driverClassName = config.property("ktor.database.driverClassName").getString()
+            username = config.property("ktor.database.username").getString()
+            password = config.property("ktor.database.password").getString()
         }
     )
 
