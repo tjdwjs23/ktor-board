@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8" />
+    <title>게시판</title>
+</head>
+<body>
+<h1>게시판</h1>
+<form action="/posts" method="post">
+    <div>
+        <label for="title">제목:</label>
+        <input type="text" id="title" name="title" required />
+    </div>
+    <div>
+        <label for="content">내용:</label>
+        <textarea id="content" name="content" required></textarea>
+    </div>
+    <button type="submit">등록</button>
+</form>
+</body>
+</html>

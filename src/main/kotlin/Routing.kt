@@ -10,10 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.ktorm.database.Database
-import org.ktorm.dsl.from
-import org.ktorm.dsl.insert
-import org.ktorm.dsl.map
-import org.ktorm.dsl.select
+import org.ktorm.dsl.*
 import java.time.LocalDateTime
 
 
@@ -49,6 +46,31 @@ fun Application.configureRouting(database: Database) {
                 }
             call.respond(posts)
         }
+
+        get("/posts/{id}") {
+            val postId = call.parameters["id"]?.toLongOrNull() ?: return@get call.respondBadRequest()
+
+            val post = database.from(Boards)
+                .select()
+                .where { Boards.id eq postId }
+                .map { row ->
+                    BoardDto(
+                        id = row[Boards.id]!!,
+                        title = row[Boards.title]!!,
+                        content = row[Boards.content]!!,
+                        createdAt = row[Boards.createdAt]!!.toString(),
+                        updatedAt = row[Boards.updatedAt]?.toString()
+                    )
+                }
+                .singleOrNull()
+
+            if (post != null) {
+                call.respond(post)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
     }
 }
 

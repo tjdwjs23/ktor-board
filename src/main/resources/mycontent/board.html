@@ -6,20 +6,8 @@
 </head>
 <body>
 <h1>게시판</h1>
+<button onclick="location.href='/content/register.html'">등록</button>
 <div class="col-md-12">
-    <form action="/posts" method="post">
-        <div>
-            <label for="title">제목:</label>
-            <input type="text" id="title" name="title" required />
-        </div>
-        <div>
-            <label for="content">내용:</label>
-            <textarea id="content" name="content" required></textarea>
-        </div>
-        <button type="submit">등록</button>
-    </form>
-
-    <br>
     <table class="table table-horizontal table-bordered">
         <thead class="thead-strong">
         <tr>
@@ -41,7 +29,7 @@
                 tbody.innerHTML = posts.map(post => `
                 <tr>
                     <td>${post.id}</td>
-                    <td>${post.title}</td>
+                    <td><a href="/content/detail.html?id=${post.id}">${post.title}</a></td>
                     <td>${post.content}</td>
                     <td>${(post.createdAt).toLocaleString()}</td>
                 </tr>
