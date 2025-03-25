@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 
 fun Application.configureRouting(database: Database) {
     routing {
+        // 게시글 등록
         post("/posts") {
             val formParameters = call.receiveParameters()
             val title = formParameters["title"] ?: return@post call.respondBadRequest()
@@ -32,6 +33,7 @@ fun Application.configureRouting(database: Database) {
 
         staticResources("/content", "mycontent")
 
+        // 게시글 목록 조회
         get("/posts") {
             val posts = database.from(Boards)
                 .select()
@@ -46,7 +48,7 @@ fun Application.configureRouting(database: Database) {
                 }
             call.respond(posts)
         }
-
+        // 상세조회
         get("/posts/{id}") {
             val postId = call.parameters["id"]?.toLongOrNull() ?: return@get call.respondBadRequest()
 
@@ -66,6 +68,27 @@ fun Application.configureRouting(database: Database) {
 
             if (post != null) {
                 call.respond(post)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
+        // 게시글 수정
+        put("/posts/{id}") {
+            val postId = call.parameters["id"]?.toLongOrNull() ?: return@put call.respondBadRequest()
+            val formParameters = call.receiveParameters()
+            val title = formParameters["title"] ?: return@put call.respondBadRequest()
+            val content = formParameters["content"] ?: return@put call.respondBadRequest()
+
+            val updated = database.update(Boards) {
+                set(it.title, title)
+                set(it.content, content)
+                set(it.updatedAt, LocalDateTime.now())
+                where { it.id eq postId }
+            }
+
+            if (updated > 0) {
+                call.respond(HttpStatusCode.NoContent)
             } else {
                 call.respond(HttpStatusCode.NotFound)
             }

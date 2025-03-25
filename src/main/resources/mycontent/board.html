@@ -3,22 +3,25 @@
 <head>
     <meta charset="UTF-8" />
     <title>게시판</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-<h1>게시판</h1>
-<button onclick="location.href='/content/register.html'">등록</button>
-<div class="col-md-12">
-    <table class="table table-horizontal table-bordered">
-        <thead class="thead-strong">
-        <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>내용</th>
-            <th>작성일</th>
-        </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-    </table>
+<div class="container mt-5">
+    <h1 class="mb-4">게시판</h1>
+    <button class="btn btn-primary mb-3" onclick="location.href='/content/register.html'">등록</button>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="thead-light">
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>내용</th>
+                <th>작성일</th>
+            </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
 </div>
 <script>
     window.onload = function() {
@@ -31,12 +34,15 @@
                     <td>${post.id}</td>
                     <td><a href="/content/detail.html?id=${post.id}">${post.title}</a></td>
                     <td>${post.content}</td>
-                    <td>${(post.createdAt).toLocaleString()}</td>
+                    <td>${new Date(post.createdAt).toLocaleString()}</td>
                 </tr>
             `).join('');
             })
             .catch(error => console.error('Error:', error));
     };
 </script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
