@@ -232,6 +232,7 @@ private suspend fun handleLogin(database: Database, call: ApplicationCall) {
         .withAudience("my_audience")
         .withIssuer("my_issuer")
         .withClaim("userId", user.first.id)
+        .withClaim("username", user.first.username)
         .sign(Algorithm.HMAC256("your_secret_key"))
 
     call.respond(AuthResponse(token))
