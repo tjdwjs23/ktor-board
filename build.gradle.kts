@@ -46,6 +46,12 @@ dependencies {
     // CallLogging & DoubleReceive 위한 의존성
     implementation("io.ktor:ktor-server-status-pages:$ktor_version")
 
+    // JWT 인증을 위한 의존성
+    implementation("io.ktor:ktor-server-auth:$ktor_version") // 기본 인증 모듈
+    implementation("io.ktor:ktor-server-auth-jwt:$ktor_version") // JWT 인증 모듈
+
+    // BCrypt
+    implementation("at.favre.lib:bcrypt:0.10.2")
 
     // MySQL Connector and HikariCP
     implementation("mysql:mysql-connector-java:$mysql_version")

@@ -1,11 +1,15 @@
 package board.ktor
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
@@ -18,6 +22,25 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     val config = environment.config
+
+    install(Authentication) {
+        jwt("jwt") {
+            realm = "myrealm"
+            verifier(
+                JWT.require(Algorithm.HMAC256("your_secret_key"))
+                    .withAudience("my_audience")
+                    .withIssuer("my_issuer")
+                    .build()
+            )
+            validate { credential ->
+                if (credential.payload.getClaim("userId").asLong() != null) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+        }
+    }
 
     val dataSource = HikariDataSource(
         HikariConfig().apply {
