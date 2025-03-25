@@ -50,6 +50,8 @@ dependencies {
     implementation("io.ktor:ktor-server-double-receive-jvm")
     implementation("ch.qos.logback:logback-classic:1.5.15")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+
 
     // MySQL Connector and HikariCP
     implementation("mysql:mysql-connector-java:$mysql_version")

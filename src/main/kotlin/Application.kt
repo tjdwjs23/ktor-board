@@ -3,9 +3,12 @@ package board.ktor
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
 import org.ktorm.database.Database
 
 fun main(args: Array<String>) {
@@ -37,4 +40,17 @@ fun Application.configureSerialization() {
             registerModule(JavaTimeModule())
         }
     }
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            if (cause is IllegalArgumentException) {
+                call.respondText(text = "403: $cause", status = HttpStatusCode.Forbidden)
+            } else {
+                call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            }
+        }
+        status(HttpStatusCode.NotFound) { call, _ ->
+            call.respondText("404: Page not found", status = HttpStatusCode.NotFound)
+        }
+    }
+
 }
