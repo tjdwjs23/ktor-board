@@ -94,6 +94,21 @@ fun Application.configureRouting(database: Database) {
             }
         }
 
+        // 게시글 삭제
+        delete("/posts/{id}") {
+            val postId = call.parameters["id"]?.toLongOrNull() ?: return@delete call.respondBadRequest()
+
+            val deleted = database.delete(Boards) {
+                it.id eq postId
+            }
+
+            if (deleted > 0) {
+                call.respond(HttpStatusCode.NoContent)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
     }
 }
 

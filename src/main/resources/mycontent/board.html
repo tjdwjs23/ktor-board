@@ -17,6 +17,7 @@
                 <th>제목</th>
                 <th>내용</th>
                 <th>작성일</th>
+                <th>작업</th> <!-- 작업 열 추가 -->
             </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -32,13 +33,36 @@
             tbody.innerHTML = posts.map(post => `
                 <tr>
                     <td>${post.id}</td>
-                    <td><a href="/content/detail.html?id=${post.id}">${post.title}</a></td>
+                    <td>${post.title}</td>
                     <td>${post.content}</td>
                     <td>${new Date(post.createdAt).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="location.href='/content/detail.html?id=${post.id}'">수정</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">삭제</button>
+                    </td>
                 </tr>
             `).join('');
         } catch (error) {
             console.error('Error:', error);
+        }
+    };
+
+    const deletePost = async (postId) => {
+        if (confirm('정말로 삭제하시겠습니까?')) {
+            try {
+                const response = await fetch(`/posts/${postId}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert('게시물이 삭제되었습니다.');
+                    window.location.reload(); // 페이지 새로고침
+                } else {
+                    alert('삭제 실패');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
     };
 </script>
