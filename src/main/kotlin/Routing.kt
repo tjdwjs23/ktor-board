@@ -16,6 +16,7 @@ import io.ktor.server.routing.*
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import java.time.LocalDateTime
+import java.util.*
 
 fun Application.configureRouting(database: Database) {
     routing {
@@ -27,6 +28,9 @@ fun Application.configureRouting(database: Database) {
             post("/posts") {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal?.payload?.getClaim("userId")?.asLong()
+
+                println("userId: $userId")
+
                 // userId를 이용한 게시글 생성 로직
                 handlePostCreation(database, call)
             }
@@ -64,17 +68,12 @@ fun Application.configureRouting(database: Database) {
 }
 
 private suspend fun handlePostCreation(database: Database, call: ApplicationCall) {
-    val (title, content) = call.receiveParameters().let {
-        it["title"] to it["content"]
-    }.takeIf { (title, content) -> title != null && content != null }
-        ?: return call.respondBadRequest()
-
+    val request = call.receive<BoardRequest>()
     database.insert(Boards) {
-        set(it.title, title)
-        set(it.content, content)
+        set(it.title, request.title)
+        set(it.content, request.content)
         set(it.createdAt, LocalDateTime.now())
     }
-
     call.respondRedirect("/content/board.html")
 }
 
@@ -200,12 +199,7 @@ private suspend fun handleRegistration(database: Database, call: ApplicationCall
 }
 
 private suspend fun handleLogin(database: Database, call: ApplicationCall) {
-    val parameters = call.receiveParameters()
-    val request = RegisterRequest(
-        username = parameters["username"] ?: "",
-        password = parameters["password"] ?: "",
-        email = parameters["email"] ?: ""
-    )
+    val request = call.receive<LoginRequest>()
 
     val user = database.from(Users)
         .select()
@@ -233,7 +227,11 @@ private suspend fun handleLogin(database: Database, call: ApplicationCall) {
         .withIssuer("my_issuer")
         .withClaim("userId", user.first.id)
         .withClaim("username", user.first.username)
+        .withClaim("email", user.first.email)
+        .withExpiresAt(Date(System.currentTimeMillis() + 60_000 * 60))
         .sign(Algorithm.HMAC256("your_secret_key"))
+
+    println("token : $token")
 
     call.respond(AuthResponse(token))
 }

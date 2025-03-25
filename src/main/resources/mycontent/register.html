@@ -23,5 +23,41 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.querySelector('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            alert('로그인이 필요합니다');
+            window.location.href = '/content/login.html';
+            return;
+        }
+
+        const formData = {
+            title: document.getElementById('title').value,
+            content: document.getElementById('content').value
+        };
+
+        try {
+            const response = await fetch('/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // 헤더에 토큰 추가
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                window.location.href = '/content/board.html';
+            } else {
+                alert('등록 실패');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+</script>
 </body>
 </html>

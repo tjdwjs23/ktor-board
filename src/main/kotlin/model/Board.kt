@@ -23,6 +23,11 @@ object Boards : Table<Board>("BOARD") {
     val updatedAt = datetime("UPDATED_AT").bindTo(Board::updatedAt)
 }
 
+data class BoardRequest(
+    val title: String,
+    val content: String
+)
+
 data class BoardDto(
     val id: Long,
     val title: String,
