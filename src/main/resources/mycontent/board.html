@@ -24,12 +24,12 @@
     </div>
 </div>
 <script>
-    window.onload = function() {
-        fetch('/posts')
-            .then(response => response.json())
-            .then(posts => {
-                const tbody = document.getElementById('tbody');
-                tbody.innerHTML = posts.map(post => `
+    window.onload = async () => {
+        try {
+            const response = await fetch('/posts');
+            const posts = await response.json();
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = posts.map(post => `
                 <tr>
                     <td>${post.id}</td>
                     <td><a href="/content/detail.html?id=${post.id}">${post.title}</a></td>
@@ -37,8 +37,9 @@
                     <td>${new Date(post.createdAt).toLocaleString()}</td>
                 </tr>
             `).join('');
-            })
-            .catch(error => console.error('Error:', error));
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 </script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

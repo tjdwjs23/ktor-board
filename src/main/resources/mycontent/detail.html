@@ -17,9 +17,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('id');
 
-    fetch(`/posts/${postId}`)
-        .then(response => response.json())
-        .then(post => {
+    const fetchPostDetail = async (postId) => {
+        try {
+            const response = await fetch(`/posts/${postId}`);
+            const post = await response.json();
             const postDetail = document.getElementById('postDetail');
             postDetail.innerHTML = `
                 <h2>${post.id}번 게시물</h2>
@@ -37,33 +38,36 @@
                 </form>
             `;
 
-            document.getElementById('editForm').addEventListener('submit', function(event) {
+            document.getElementById('editForm').addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const updatedTitle = document.getElementById('title').value;
                 const updatedContent = document.getElementById('content').value;
 
-                fetch(`/posts/${postId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        title: updatedTitle,
-                        content: updatedContent
-                    })
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            alert('수정되었습니다.');
-                            window.location.href = '/content/board.html';
-                        } else {
-                            alert('수정 실패');
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
+                try {
+                    const response = await fetch(`/posts/${postId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ title: updatedTitle, content: updatedContent })
+                    });
+
+                    if (response.ok) {
+                        alert('수정되었습니다.');
+                        window.location.href = '/content/board.html';
+                    } else {
+                        alert('수정 실패');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             });
-        })
-        .catch(error => console.error('Error:', error));
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    fetchPostDetail(postId);
 </script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
