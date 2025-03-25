@@ -42,15 +42,43 @@ fun Application.configureSerialization() {
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            if (cause is IllegalArgumentException) {
-                call.respondText(text = "403: $cause", status = HttpStatusCode.Forbidden)
-            } else {
-                call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
-            }
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                CommonErrorResponse(
+                    errorCode = "INTERNAL_SERVER_ERROR",
+                    errorMessage = "내부 오류입니다.",
+                    causeMessage = cause.message
+                )
+            )
+        }
+        exception<NoSuchElementException> { call, cause ->
+            call.respond(
+                HttpStatusCode.NotFound,
+                CommonErrorResponse(
+                    errorCode = "NO_SUCH_ELEMENT",
+                    errorMessage = "조회 결과가 없습니다.",
+                    causeMessage = cause.message
+                )
+            )
         }
         status(HttpStatusCode.NotFound) { call, _ ->
-            call.respondText("404: Page not found", status = HttpStatusCode.NotFound)
+            call.respond(
+                HttpStatusCode.NotFound,
+                CommonErrorResponse(
+                    errorCode = "NOT_FOUND",
+                    errorMessage = "요청한 자원을 찾을 수 없습니다.",
+                    causeMessage = null,
+                )
+            )
         }
+
     }
 
 }
+
+data class CommonErrorResponse(
+    val errorCode: String,
+    val errorMessage: String,
+    val causeMessage: String?,
+)
+
