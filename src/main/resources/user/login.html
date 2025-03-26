@@ -42,8 +42,9 @@
         });
 
         if (response.ok) {
-            const {token} = await response.json();
-            localStorage.setItem('jwtToken', token); // 토큰 저장
+            const {accessToken, refreshToken} = await response.json();
+            localStorage.setItem('accessToken', accessToken); // 토큰 저장
+            localStorage.setItem('refreshToken', refreshToken); // 토큰 저장
             window.location.href = '/content/board.html';
         } else {
             alert('로그인 실패');

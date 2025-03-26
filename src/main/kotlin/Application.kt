@@ -1,5 +1,7 @@
 package board.ktor
 
+import board.ktor.model.TokenRecord
+import board.ktor.model.Tokens
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -14,33 +16,17 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import org.ktorm.database.Database
+import org.ktorm.dsl.*
+import java.time.LocalDateTime
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-
 fun Application.module() {
     val config = environment.config
 
-    install(Authentication) {
-        jwt("jwt") {
-            realm = "myrealm"
-            verifier(
-                JWT.require(Algorithm.HMAC256("your_secret_key"))
-                    .withAudience("my_audience")
-                    .withIssuer("my_issuer")
-                    .build()
-            )
-            validate { credential ->
-                if (credential.payload.getClaim("userId").asLong() != null) {
-                    JWTPrincipal(credential.payload)
-                } else {
-                    null
-                }
-            }
-        }
-    }
+    val audience = "my_audience"
 
     val dataSource = HikariDataSource(
         HikariConfig().apply {
@@ -52,6 +38,30 @@ fun Application.module() {
     )
 
     val database = Database.connect(dataSource)
+
+    fun audienceMatches(
+        credential: JWTCredential,
+    ): Boolean =
+        credential.payload.audience.contains(audience)
+
+    install(Authentication) {
+        jwt("jwt") {
+            realm = "myrealm"
+            verifier(
+                JWT.require(Algorithm.HMAC256("your_secret_key"))
+                    .withAudience("my_audience")
+                    .withIssuer("my_issuer")
+                    .build()
+            )
+            validate { credential ->
+                if (audienceMatches(credential)) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+        }
+    }
 
     configureRouting(database)
     configureSerialization()

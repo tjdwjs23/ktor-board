@@ -11,6 +11,7 @@ interface Board : Entity<Board> {
     val id: Long
     var title: String
     var content: String
+    var createdBy: Long
     var createdAt: LocalDateTime
     var updatedAt: LocalDateTime?
 }
@@ -19,6 +20,7 @@ object Boards : Table<Board>("BOARD") {
     val id = long("ID").primaryKey().bindTo(Board::id)
     val title = text("TITLE").bindTo(Board::title)
     val content = text("CONTENT").bindTo(Board::content)
+    val createdBy = long("CREATED_BY").bindTo(Board::createdBy)
     val createdAt = datetime("CREATED_AT").bindTo(Board::createdAt)
     val updatedAt = datetime("UPDATED_AT").bindTo(Board::updatedAt)
 }
@@ -32,6 +34,7 @@ data class BoardDto(
     val id: Long,
     val title: String,
     val content: String,
+    val createdBy: Long,
     val createdAt: String,
     val updatedAt: String?
 )

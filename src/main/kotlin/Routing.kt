@@ -29,12 +29,12 @@ fun Application.configureRouting(database: Database) {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal?.payload?.getClaim("userId")?.asLong()
 
-                println("userId: $userId")
-
                 // userId를 이용한 게시글 생성 로직
-                handlePostCreation(database, call)
+                handlePostCreation(database, call, userId)
             }
+
         }
+
         // 게시글 목록 조회
         get("/posts") {
             handleGetPosts(database, call)
@@ -64,15 +64,39 @@ fun Application.configureRouting(database: Database) {
         post("/login") {
             handleLogin(database, call)
         }
+
+        // 토큰 갱신
+        post("/refresh") {
+            handleRefreshToken(database, call)
+        }
+
+        post("/logout") {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal?.payload?.getClaim("userId")?.asLong()
+            val accessToken = principal?.payload?.getClaim("accessToken")?.asString()
+
+            if (userId != null && accessToken != null) {
+                database.update(Tokens) {
+                    set(it.revoked, true)
+                    where {
+                        (Tokens.user eq userId) and (Tokens.accessToken eq accessToken)
+                    }
+                }
+                call.respond(HttpStatusCode.OK, "Logged out")
+            } else {
+                call.respond(HttpStatusCode.Unauthorized)
+            }
+        }
     }
 }
 
-private suspend fun handlePostCreation(database: Database, call: ApplicationCall) {
+private suspend fun handlePostCreation(database: Database, call: ApplicationCall, userId : Long?) {
     val request = call.receive<BoardRequest>()
     database.insert(Boards) {
         set(it.title, request.title)
         set(it.content, request.content)
         set(it.createdAt, LocalDateTime.now())
+        set(it.createdBy, userId)
     }
     call.respondRedirect("/content/board.html")
 }
@@ -85,6 +109,7 @@ private suspend fun handleGetPosts(database: Database, call: ApplicationCall) {
                 id = row[Boards.id]!!,
                 title = row[Boards.title]!!,
                 content = row[Boards.content]!!,
+                createdBy = row[Boards.createdBy]!!,
                 createdAt = row[Boards.createdAt]!!.toString(),
                 updatedAt = row[Boards.updatedAt]?.toString()
             )
@@ -103,6 +128,7 @@ private suspend fun handleGetPost(database: Database, call: ApplicationCall) {
                 id = row[Boards.id]!!,
                 title = row[Boards.title]!!,
                 content = row[Boards.content]!!,
+                createdBy = row[Boards.createdBy]!!,
                 createdAt = row[Boards.createdAt]!!.toString(),
                 updatedAt = row[Boards.updatedAt]?.toString()
             )
@@ -172,16 +198,12 @@ private suspend fun handleRegistration(database: Database, call: ApplicationCall
         }
         .firstOrNull()
 
-    println("existingUser: $existingUser")
-
     if (existingUser != null) {
         call.respond(HttpStatusCode.Conflict, "Username already exists")
         return
     }
 
     val hashedPassword = BCrypt.withDefaults().hashToString(12, request.password.toCharArray())
-
-    println("hashedPassword: $hashedPassword")
 
     database.insert(Users) {
         set(it.username, request.username)
@@ -222,7 +244,8 @@ private suspend fun handleLogin(database: Database, call: ApplicationCall) {
         return
     }
 
-    val token = JWT.create()
+    // Generate access token (15 minutes expiry)
+    val accessToken = JWT.create()
         .withAudience("my_audience")
         .withIssuer("my_issuer")
         .withClaim("userId", user.first.id)
@@ -231,9 +254,109 @@ private suspend fun handleLogin(database: Database, call: ApplicationCall) {
         .withExpiresAt(Date(System.currentTimeMillis() + 60_000 * 60))
         .sign(Algorithm.HMAC256("your_secret_key"))
 
-    println("token : $token")
+    // Generate refresh token (7 days expiry)
+    val refreshToken = JWT.create()
+        .withAudience("my_audience")
+        .withIssuer("my_issuer")
+        .withClaim("userId", user.first.id)
+        .withExpiresAt(Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
+        .sign(Algorithm.HMAC256("your_secret_key"))
 
-    call.respond(AuthResponse(token))
+    // Save tokens to database
+    database.insert(Tokens) {
+        set(it.accessToken, accessToken)
+        set(it.refreshToken, refreshToken)
+        set(it.user, user.first.id)
+        set(it.accessExpiresAt, LocalDateTime.now().plusMinutes(15))
+        set(it.refreshExpiresAt, LocalDateTime.now().plusDays(7))
+        set(it.revoked, false)
+        set(it.createdAt, LocalDateTime.now())
+    }
+    call.respond(AuthResponse(accessToken, refreshToken))
+}
+
+private suspend fun handleRefreshToken(database: Database, call: ApplicationCall) {
+    val request = call.receive<RefreshTokenRequest>()
+
+    // Find valid refresh token
+    val tokenRecord = database.from(Tokens)
+        .select()
+        .where {
+            Tokens.refreshToken eq request.refreshToken and
+                    (Tokens.revoked eq false) and
+                    (Tokens.refreshExpiresAt greater LocalDateTime.now())
+        }
+        .map { row ->
+            TokenRecord(
+                id = row[Tokens.id]!!,
+                user = row[Tokens.user]!!,
+                accessToken = row[Tokens.accessToken]!!,
+                refreshToken = row[Tokens.refreshToken]!!,
+                accessExpiresAt = row[Tokens.accessExpiresAt]!!,
+                refreshExpiresAt = row[Tokens.refreshExpiresAt]!!,
+                revoked = row[Tokens.revoked]!!,
+                createdAt = row[Tokens.createdAt]!!
+            )
+        }
+        .singleOrNull()
+
+    if (tokenRecord == null) {
+        call.respond(HttpStatusCode.Unauthorized, "Invalid or expired refresh token")
+        return
+    }
+
+    // Revoke the used refresh token
+    database.update(Tokens) {
+        set(it.revoked, true)
+        where { it.id eq tokenRecord.id }
+    }
+
+    // Fetch user details
+    val user = database.from(Users)
+        .select()
+        .where { Users.id eq tokenRecord.user }
+        .map { row ->
+            UserResponse(
+                id = row[Users.id]!!,
+                username = row[Users.username]!!,
+                email = row[Users.email]!!,
+                createdAt = row[Users.createdAt]!!.toString()
+            )
+        }
+        .singleOrNull() ?: run {
+        call.respond(HttpStatusCode.NotFound, "User not found")
+        return
+    }
+
+    // Generate new tokens
+    val newAccessToken = JWT.create()
+        .withAudience("my_audience")
+        .withIssuer("my_issuer")
+        .withClaim("userId", user.id)
+        .withClaim("username", user.username)
+        .withClaim("email", user.email)
+        .withExpiresAt(Date(System.currentTimeMillis() + 15 * 60 * 1000))
+        .sign(Algorithm.HMAC256("your_secret_key"))
+
+    val newRefreshToken = JWT.create()
+        .withAudience("my_audience")
+        .withIssuer("my_issuer")
+        .withClaim("userId", user.id)
+        .withExpiresAt(Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
+        .sign(Algorithm.HMAC256("your_secret_key"))
+
+    // Save new tokens
+    database.insert(Tokens) {
+        set(it.accessToken, newAccessToken)
+        set(it.refreshToken, newRefreshToken)
+        set(it.user, user.id)
+        set(it.accessExpiresAt, LocalDateTime.now().plusMinutes(15))
+        set(it.refreshExpiresAt, LocalDateTime.now().plusDays(7))
+        set(it.revoked, false)
+        set(it.createdAt, LocalDateTime.now())
+    }
+
+    call.respond(AuthResponse(newAccessToken, newRefreshToken))
 }
 
 suspend fun ApplicationCall.respondBadRequest() {
