@@ -24,17 +24,3 @@ object Boards : Table<Board>("BOARD") {
     val createdAt = datetime("CREATED_AT").bindTo(Board::createdAt)
     val updatedAt = datetime("UPDATED_AT").bindTo(Board::updatedAt)
 }
-
-data class BoardRequest(
-    val title: String,
-    val content: String
-)
-
-data class BoardDto(
-    val id: Long,
-    val title: String,
-    val content: String,
-    val createdBy: Long,
-    val createdAt: String,
-    val updatedAt: String?
-)

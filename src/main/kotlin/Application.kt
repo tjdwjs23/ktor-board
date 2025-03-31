@@ -1,23 +1,23 @@
 package board.ktor
 
-import board.ktor.model.TokenRecord
-import board.ktor.model.Tokens
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
+import board.ktor.repository.BoardRepository
+import board.ktor.service.BoardService
+import com.codersee.plugins.configureSecurity
+import com.codersee.repository.RefreshTokenRepository
+import com.codersee.repository.UserRepository
+import com.codersee.routing.configureRouting
+import com.codersee.service.JwtService
+import com.codersee.service.UserService
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import org.ktorm.database.Database
-import org.ktorm.dsl.*
-import java.time.LocalDateTime
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -25,9 +25,6 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     val config = environment.config
-
-    val audience = "my_audience"
-
     val dataSource = HikariDataSource(
         HikariConfig().apply {
             jdbcUrl = config.property("ktor.database.jdbcUrl").getString()
@@ -39,32 +36,18 @@ fun Application.module() {
 
     val database = Database.connect(dataSource)
 
-    fun audienceMatches(
-        credential: JWTCredential,
-    ): Boolean =
-        credential.payload.audience.contains(audience)
 
-    install(Authentication) {
-        jwt("jwt") {
-            realm = "myrealm"
-            verifier(
-                JWT.require(Algorithm.HMAC256("your_secret_key"))
-                    .withAudience("my_audience")
-                    .withIssuer("my_issuer")
-                    .build()
-            )
-            validate { credential ->
-                if (audienceMatches(credential)) {
-                    JWTPrincipal(credential.payload)
-                } else {
-                    null
-                }
-            }
-        }
-    }
+    val userRepository = UserRepository()
+    val refreshTokenRepository = RefreshTokenRepository()
+    val jwtService = JwtService(this, userRepository)
+    val userService = UserService(userRepository, jwtService, refreshTokenRepository)
 
-    configureRouting(database)
+    val boardRepository = BoardRepository(database)
+    val boardService = BoardService(boardRepository)
+
     configureSerialization()
+    configureSecurity(jwtService)
+    configureRouting(userService, boardService)
 }
 
 fun Application.configureSerialization() {
