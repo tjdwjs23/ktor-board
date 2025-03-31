@@ -27,7 +27,7 @@
 <script>
     window.onload = async () => {
         try {
-            const response = await fetch('/posts');
+            const response = await fetch('/api/board');
             const posts = await response.json();
             const tbody = document.getElementById('tbody');
             tbody.innerHTML = posts.map(post => `
@@ -50,7 +50,7 @@
     const deletePost = async (postId) => {
         if (confirm('정말로 삭제하시겠습니까?')) {
             try {
-                const response = await fetch(`/posts/${postId}`, {
+                const response = await fetch(`/api/board/${postId}`, {
                     method: 'DELETE',
                 });
 
