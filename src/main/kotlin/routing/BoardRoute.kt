@@ -1,5 +1,6 @@
 package board.ktor.routing
 
+import board.ktor.CommonResponse
 import board.ktor.routing.request.BoardRequest
 import board.ktor.service.BoardService
 import io.ktor.http.*
@@ -41,7 +42,10 @@ fun Route.boardRoute(boardService: BoardService) {
         try {
             val createdBoard = boardService.create(board)
             createdBoard?.let {
-                call.respond(createdBoard)
+                call.respond(
+                    HttpStatusCode.OK,
+                    CommonResponse("SUCCESS", data = createdBoard)
+                )
             } ?: call.respond(HttpStatusCode.InternalServerError, "Error creating board")
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, "Error creating board: ${e.message}")
@@ -55,7 +59,10 @@ fun Route.boardRoute(boardService: BoardService) {
         try {
             val updatedBoard = boardService.update(id, board)
             updatedBoard?.let {
-                call.respond(updatedBoard)
+                call.respond(
+                    HttpStatusCode.OK,
+                    CommonResponse("SUCCESS", data = updatedBoard)
+                )
             } ?: call.respond(HttpStatusCode.InternalServerError, "Error updating board")
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, "Error updating board: ${e.message}")
@@ -67,8 +74,10 @@ fun Route.boardRoute(boardService: BoardService) {
 
         try {
             val deleted = boardService.delete(id)
-            deleted.let {
+            if (deleted) {
                 call.respond(HttpStatusCode.OK, "Board deleted")
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Board not found")
             }
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, "Error deleting board: ${e.message}")

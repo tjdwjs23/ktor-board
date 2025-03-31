@@ -39,26 +39,34 @@ class BoardRepository(private val database: Database) {
             .singleOrNull()
 
     fun create(boardRequest : BoardRequest): BoardResponse? {
-        val id = database.insertAndGenerateKey(Boards) {
-            set(it.title, boardRequest.title)
-            set(it.content, boardRequest.content)
-        } as Long
+        val id = database.useTransaction {
+            database.insertAndGenerateKey(Boards) {
+                set(it.title, boardRequest.title)
+                set(it.content, boardRequest.content)
+                set(it.createdAt, LocalDateTime.now())
+            } as Long
+
+        }
         return findById(id)
     }
 
     fun update(id: Long, boardRequest: BoardRequest): BoardResponse? {
-        database.update(Boards) {
-            set(it.title, boardRequest.title)
-            set(it.content, boardRequest.content)
-            set(it.updatedAt, LocalDateTime.now())
-            where {
-                it.id eq id
+        database.useTransaction {
+            database.update(Boards) {
+                set(it.title, boardRequest.title)
+                set(it.content, boardRequest.content)
+                set(it.updatedAt, LocalDateTime.now())
+                where {
+                    it.id eq id
+                }
             }
         }
         return findById(id)
     }
 
-    fun delete(id: Long): Boolean = database.delete(Boards) {
-        it.id eq id
-    } > 0
+    fun delete(id: Long): Boolean = database.useTransaction {
+        database.delete(Boards) {
+            it.id eq id
+        } > 0
+    }
 }

@@ -18,6 +18,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import org.ktorm.database.Database
+import java.text.SimpleDateFormat
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -54,6 +55,7 @@ fun Application.configureSerialization() {
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
+            dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         }
     }
     install(StatusPages) {
@@ -91,6 +93,13 @@ fun Application.configureSerialization() {
     }
 
 }
+
+data class CommonResponse<T>(
+    val status: String,
+    val data: T? = null,
+    val error: CommonErrorResponse? = null
+)
+
 
 data class CommonErrorResponse(
     val errorCode: String,
