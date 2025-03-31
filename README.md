@@ -6,7 +6,6 @@
 <ul color="$color_text_primary" class="css-25cm1">
 <li color="$color_text_primary" class="css-10efh88"><strong color="$color_text_primary" class="css-q6mb20">Kotlin</strong>: 2.1.20</li>
 <li color="$color_text_primary" class="css-10efh88"><strong color="$color_text_primary" class="css-q6mb20">Ktor</strong>: 3.1.1</li>
-<li color="$color_text_primary" class="css-10efh88"><strong color="$color_text_primary" class="css-q6mb20">Logback</strong>: (version to be specified)</li>
 <li color="$color_text_primary" class="css-10efh88"><strong color="$color_text_primary" class="css-q6mb20">Ktorm</strong>: 4.1.1</li>
 <li color="$color_text_primary" class="css-10efh88"><strong color="$color_text_primary" class="css-q6mb20">HikariCP</strong>: 6.2.1</li>
 <li color="$color_text_primary" class="css-10efh88"><strong color="$color_text_primary" class="css-q6mb20">MySQL</strong>: 8.0.33</li>
